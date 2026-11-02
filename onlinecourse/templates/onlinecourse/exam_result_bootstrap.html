@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,10 +8,10 @@
 </head>
 <body>
 
- <nav class="navbar navbar-light bg-light">
+<nav class="navbar navbar-light bg-light">
     <div class="container-fluid">
         <div class="navbar-header">
-              <a class="navbar-brand" href="{% url 'onlinecourse:index' %}">Home</a>
+            <a class="navbar-brand" href="{% url 'onlinecourse:index' %}">Home</a>
         </div>
         <ul class="nav navbar-nav navbar-right">
             {% if user.is_authenticated %}
@@ -18,38 +19,66 @@
                 <a class="btn btn-link" href="#">{{ user.first_name }}({{ user.username }})</a>
                 <a class="btn btn-link" href="{% url 'onlinecourse:logout' %}">Logout</a>
             </li>
-            {% else %}
-            <li>
-                <form class="form-inline" action="{% url 'onlinecourse:login' %}" method="post">
-                    {% csrf_token %}
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Username" name="username" >
-                        <input type="password" class="form-control" placeholder="Username" name="psw" >
-                        <button class="btn btn-primary" type="submit">Login</button>
-                        <a class="btn btn-link" href="{% url 'onlinecourse:registration' %}">Sign Up</a>
-                    </div>
-                </form>
-            </li>
             {% endif %}
         </ul>
     </div>
 </nav>
 
-<div class="container-fluid">
-    {% if grade > 80 %}
+<div class="container mt-4">
+
+    {% if passed %}
     <div class="alert alert-success">
-       <!--HINT Display passed info -->
+        <h3>Congratulations! You passed the exam!</h3>
+        <h5>Your score: {{ total_score }} / {{ max_score }}</h5>
     </div>
-        {% else %}
-        <div class="alert alert-danger">
-            <!--HINT Display failed info -->
+    {% else %}
+    <div class="alert alert-danger">
+        <h3>You did not pass the exam.</h3>
+        <h5>Your score: {{ total_score }} / {{ max_score }}</h5>
+    </div>
+
+    <a class="btn btn-danger mb-3"
+       href="{% url 'onlinecourse:course_details' course.id %}">
+        Re-test
+    </a>
+    {% endif %}
+
+    <h4 class="mb-3">Exam results</h4>
+
+    {% for result in question_results %}
+    <div class="card mb-3">
+        <div class="card-header">
+            <strong>{{ forloop.counter }}. {{ result.question.content }}</strong>
         </div>
-        <a class="btn btn-link text-danger" href="{% url 'onlinecourse:course_details' course.id %}">Re-test</a>
-        {% endif %}
-        <div class="card-columns-vertical mt-1">
-        <h5 class="">Exam results</h5>
-            <!--HINT Display exam results-->
+
+        <div class="card-body">
+
+            {% if result.is_correct %}
+                <p class="text-success"><strong>Correct!</strong></p>
+            {% else %}
+                <p class="text-danger"><strong>Incorrect</strong></p>
+            {% endif %}
+
+            <p>
+                Score: {{ result.grade_awarded }} / {{ result.grade }}
+            </p>
+
+            <p><strong>Your answer:</strong></p>
+            {% for choice in result.selected_choices %}
+                <p>{{ choice.content }}</p>
+            {% empty %}
+                <p class="text-muted">No answer selected.</p>
+            {% endfor %}
+
+            <p><strong>Correct answer:</strong></p>
+            {% for choice in result.correct_choices %}
+                <p class="text-success">{{ choice.content }}</p>
+            {% endfor %}
+
         </div>
     </div>
+    {% endfor %}
+
+</div>
 </body>
 </html>
